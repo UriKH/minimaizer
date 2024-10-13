@@ -14,6 +14,8 @@ class Complex:
         """
         self.re = float(re)
         self.im = float(im)
+        self.r = sqrt(pow(self.re, 2) + pow(self.im, 2))
+        self.phase = tan(self.im / self.re) if self.re != 0 else pi / 2
 
     @classmethod
     def from_polar(cls, r: float, theta: float) -> Complex:
@@ -30,7 +32,7 @@ class Complex:
         Converts the complex number into polar form
         :return: the polar form of the complex number (r, θ)
         """
-        return self.__abs__(), self.phase()
+        return self.r, self.phase
 
     def cartesian(self) -> Tuple[float, float]:
         """
@@ -38,12 +40,6 @@ class Complex:
         :return: the cartesian form of the number as (real, imaginary)
         """
         return self.re, self.im
-
-    def phase(self) -> float:
-        """
-        :return: the angle θ of the radius vector
-        """
-        return tan(self.im / self.re) if self.re != 0 else pi / 2
 
     def conjugate(self) -> Complex:
         """
@@ -169,7 +165,7 @@ class Complex:
         """
         :return: the distance between the number and the origin in the complex plain
         """
-        return sqrt(pow(self.re, 2) + pow(self.im, 2))
+        return self.r
 
     def __neg__(self) -> Complex:
         """
@@ -178,10 +174,15 @@ class Complex:
         return Complex(-self.re, -self.im)
 
     def __str__(self):
-        return f'{self.re}+{self.im}i'
+        return f'{self.re:.3f}+{self.im:.3f}i'
 
     def __repr__(self):
-        return f'({self.__str__()})'
+        return f'({self.re}+{self.im}i)'
+
+    def __pow__(self, power, modulo=None):
+        r = pow(self.r, power)
+        phase = self.phase * power
+        return Complex.from_polar(r, phase)
 
 
 # complex constant i
