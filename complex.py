@@ -1,6 +1,6 @@
 from __future__ import annotations
-from typing import Tuple, Union
-from math import tan, cos, sin, pow, sqrt, pi
+from typing import Tuple, Union, List
+from math import atan2, cos, sin, pow, sqrt, pi
 
 """ Implementation of complex numbers (we don't want to use j, only i) """
 
@@ -15,13 +15,13 @@ class Complex:
         self.re = float(re)
         self.im = float(im)
         self.r = sqrt(pow(self.re, 2) + pow(self.im, 2))
-        self.phase = tan(self.im / self.re) if self.re != 0 else pi / 2
+        self.phase = atan2(self.im, self.re) if self.re != 0 else (pi / 2 if self.im > 0 else 3*pi / 2)
 
     @classmethod
     def from_polar(cls, r: float, theta: float) -> Complex:
         """
         Create a Complex instance from polar coordinates (r, θ).
-        :param r: radius vector
+        :param r: magnitude of complex number
         :param theta: angle θ of the vector
         :return: a complex number instance
         """
@@ -74,7 +74,12 @@ class Complex:
         :param other: Complex / int / float
         :return: the sum
         """
-        self.__add__(-other)
+        if isinstance(other, Complex):
+            return Complex(self.re - other.re, self.im - other.im)
+        elif isinstance(other, (int, float)):
+            return Complex(self.re - other, self.im)
+        else:
+            raise NotImplementedError
 
     def __rsub__(self, other: Union[int, float]):
         """
@@ -106,6 +111,11 @@ class Complex:
         :return: the product
         """
         return self.__mul__(other)
+
+    def __pow__(self, power: float, modulo=None):
+        r = pow(self.r, power)
+        phase = self.phase * power
+        return Complex.from_polar(r, phase)
 
     def __truediv__(self, other: Union[int, float, Complex]) -> Complex:
         """
@@ -174,15 +184,26 @@ class Complex:
         return Complex(-self.re, -self.im)
 
     def __str__(self):
-        return f'{self.re:.3f}+{self.im:.3f}i'
+        sign = '' if self.im < 0 else '+'
+        if self.im == 0:
+            return f'{self.re:.3f}'
+        return f'{self.re:.3f}{sign}{self.im:.3f}i'
 
     def __repr__(self):
-        return f'({self.re}+{self.im}i)'
+        sign = '' if self.im < 0 else '+'
+        if self.im == 0:
+            return f'{self.re}'
+        return f'{self.re}{sign}{self.im}i'
 
-    def __pow__(self, power, modulo=None):
-        r = pow(self.r, power)
-        phase = self.phase * power
-        return Complex.from_polar(r, phase)
+    def __hash__(self):
+        return self.__repr__().__hash__()
+
+    def roots(self, degree) -> List[Complex]:
+        r = pow(self.r, 1 / degree)
+        return [Complex.from_polar(r, (self.phase + 2*pi*i) / degree) for i in range(degree)]
+
+    def principal_root(self, degree) -> Complex:
+        return Complex.from_polar(pow(self.r, 1 / degree), self.phase / degree + 2 * pi)
 
 
 # complex constant i
